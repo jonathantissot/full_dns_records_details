@@ -1,0 +1,12 @@
+---
+local_segments:
+  - X.Y.Z.A/16
+  - B.C.D.E/20
+dns_providers:
+  dynect:
+    customer_name: '<your_customer_name>'
+    user_name: '<your_user_name>'
+    password: '<your_password>'
+  route53:
+    access_key: '<your_access_key>'
+    secret_access_key: '<your_secret_access_key'
