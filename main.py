@@ -64,8 +64,6 @@ def get_dns(dns_details):
                     if present_in_subnet:
                         break
                 records_list.append([zone, record_name, record_type, record_ip, present_in_subnet])
-            print(records_list)
-            exit(0)
     if 'route53' in dns_details['dns_providers'].keys():
         route53 = dns_details['dns_providers']['route53']
 
@@ -90,7 +88,7 @@ def get_dns(dns_details):
     return records_list
 
 
-dns_name = str(datetime.now().strftime('%Y%m%d%H%m')) + '_sli_dns_report.csv'
+dns_name = str(datetime.now().strftime('%Y%m%d%H%m')) + '_dns_report.csv'
 parser = ArgumentParser()
 parser.add_argument("-i", "--input", dest="input_file", default='./input.yml',
                     help="Input YML file path", metavar="FILE")
