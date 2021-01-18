@@ -1,16 +1,18 @@
 from argparse import ArgumentParser
 from datetime import datetime
+import requests
+import json
 import yaml
 import csv
 
 
-def dynect_parser(data, delimiter):
+def dynect_parser(data: str, delimiter: str) -> bool:
     parsed_data = data.split('/')
     parsed_index = parsed_data.index(delimiter)
     return parsed_data[parsed_index + 1]
 
 
-def check_ip_in_subnet(ip, subnet):
+def check_ip_in_subnet(ip: str, subnet: str) -> bool:
     from netaddr import IPNetwork, IPAddress, core
     try:
         if IPAddress(ip) in IPNetwork(subnet):
@@ -22,12 +24,15 @@ def check_ip_in_subnet(ip, subnet):
 
 def get_dns(dns_details):
     import requests
-    import json
     import boto3
+    from collections import Counter, defaultdict
+    import itertools
 
-    records_list = [['Zone', 'Name', 'Type', 'IP', 'Present in Subnet']]
+    records_list = [['Zone', 'Name', 'Type', 'IP', 'Present in Subnet', 'Repetitions']]
+    count_map = {}
+    count_map = defaultdict(lambda: 0, count_map)
     if 'dynect' in dns_details['dns_providers'].keys():
-        dynect_url = 'https://api.dynect.net'
+
         dynect_url_session = dynect_url + '/REST/Session/'
         dynect = dns_details['dns_providers']['dynect']
         payload_get_token = {
@@ -59,6 +64,8 @@ def get_dns(dns_details):
                 res = json.loads(requests.get(record_url, data=json.dumps(payload), headers=headers).text)
                 record_detail = res['data']
                 record_ip = record_detail['rdata']['address']
+
+                present_in_subnet = False
                 for subnet in dns_details['local_segments']:
                     present_in_subnet = check_ip_in_subnet(record_ip, subnet)
                     if present_in_subnet:
@@ -80,14 +87,26 @@ def get_dns(dns_details):
                     continue
                 for record_value in record['ResourceRecords']:
                     record_ip = record_value['Value']
+                    count_map[record_ip] = count_map[record_ip] + 1
                     for subnet in dns_details['local_segments']:
                         present_in_subnet = check_ip_in_subnet(record_ip, subnet)
                         if present_in_subnet:
                             break
-                    records_list.append([zone['Name'], record['Name'], record['Type'], record_ip, present_in_subnet])
+                    records_list.append(
+                        [zone['Name'],
+                         record['Name'],
+                         record['Type'],
+                         record_ip,
+                         present_in_subnet]
+                    )
+    for record in records_list:
+        if len(record) != len(records_list[0]):
+            record.append(str(count_map[record[3]]))
+    print(records_list)
     return records_list
 
 
+dynect_url = 'https://api.dynect.net'
 dns_name = str(datetime.now().strftime('%Y%m%d%H%m')) + '_dns_report.csv'
 parser = ArgumentParser()
 parser.add_argument("-i", "--input", dest="input_file", default='./input.yml',

@@ -2,6 +2,8 @@
 ## What do we have here?
 
 This repo contains a simple script that will connect to Dynect / AWS Route 53 according to an input.yml file.
+It can validate against a subnet [even an IP] provided if any of the records matches.
+As well, it will count how many repetitions exist for each record.
 
 Basically, the following files will be present:
 
