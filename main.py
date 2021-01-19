@@ -25,8 +25,7 @@ def check_ip_in_subnet(ip: str, subnet: str) -> bool:
 def get_dns(dns_details):
     import requests
     import boto3
-    from collections import Counter, defaultdict
-    import itertools
+    from collections import defaultdict
 
     records_list = [['Zone', 'Name', 'Type', 'IP', 'Present in Subnet', 'Repetitions']]
     count_map = {}
