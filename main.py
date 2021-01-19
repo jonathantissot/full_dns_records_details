@@ -1,12 +1,11 @@
 from argparse import ArgumentParser
 from datetime import datetime
-import requests
 import json
 import yaml
 import csv
 
 
-def dynect_parser(data: str, delimiter: str) -> bool:
+def dynect_parser(data: str, delimiter: str) -> str:
     parsed_data = data.split('/')
     parsed_index = parsed_data.index(delimiter)
     return parsed_data[parsed_index + 1]
@@ -30,6 +29,7 @@ def get_dns(dns_details):
     records_list = [['Zone', 'Name', 'Type', 'IP', 'Present in Subnet', 'Repetitions']]
     count_map = {}
     count_map = defaultdict(lambda: 0, count_map)
+    present_in_subnet = False
     if 'dynect' in dns_details['dns_providers'].keys():
 
         dynect_url_session = dynect_url + '/REST/Session/'
@@ -63,8 +63,6 @@ def get_dns(dns_details):
                 res = json.loads(requests.get(record_url, data=json.dumps(payload), headers=headers).text)
                 record_detail = res['data']
                 record_ip = record_detail['rdata']['address']
-
-                present_in_subnet = False
                 for subnet in dns_details['local_segments']:
                     present_in_subnet = check_ip_in_subnet(record_ip, subnet)
                     if present_in_subnet:
@@ -134,5 +132,3 @@ if __name__ == '__main__':
     with open(args.output_file, 'w', newline='') as csv_file:
         write = csv.writer(csv_file)
         write.writerows(records_detailed_list)
-
-
